@@ -59,7 +59,7 @@
           videoWrapper = $(this.el()),
           currentMarkerIndex  = -1,
           player       = this,
-          markerTip    = null,
+          highlightedMarkerTip    = null,
           breakOverlay = null,
           overlayIndex = -1;
 
@@ -119,7 +119,7 @@
          });
 
          if (setting.markerTip.display) {
-            registerMarkerTipHandler(markerDiv);
+            registerMarkerTipHandler(markerDiv, marker);
          }
 
          return markerDiv;
@@ -174,43 +174,50 @@
 
 
       // attach hover event handler
-      function registerMarkerTipHandler(markerDiv) {
+      function registerMarkerTipHandler(markerDiv, marker) {
+         var markerTip = initializeMarkerTip(marker);
+         markerTip.css({ // TODO: does not support multiline strings
+                        "left" : getPosition(marker) + '%',
+                        "margin-left" : -parseFloat(markerTip.css("width"))/2 - 5 + 'px',
+                        "visibility"  : "visible"});
 
          markerDiv.on('mouseover', function(){
-            var marker = markersMap[$(this).data('marker-key')];
+            if(highlightedMarkerTip) {
+                highlightedMarkerTip.css('z-index', '100000');
+            }
+            highlightedMarkerTip = markerTip;
+            highlightedMarkerTip.css('z-index', '100001');
 
-            markerTip.find('.vjs-tip-inner').text(setting.markerTip.text(marker));
-
-            // margin-left needs to minus the padding length to align correctly with the marker
-            markerTip.css({"left" : getPosition(marker) + '%',
-                           "margin-left" : -parseFloat(markerTip.css("width"))/2 - 5 + 'px',
-                           "visibility"  : "visible"});
-
+            // TODO: toggle visibility?
          }).on('mouseout',function(){
-            markerTip.css("visibility", "hidden");
+            // markerTip.css("visibility", "hidden");
          });
       }
 
-      function initializeMarkerTip() {
-         markerTip = $("<div class='vjs-tip'><div class='vjs-tip-arrow'></div><div class='vjs-tip-inner'></div></div>");
+      function initializeMarkerTip(marker) { // TODO: fix vjs-tip-arrow which is moving when controlbar gets a hover
+         var markerTip = $("<div class='vjs-tip'><div class='vjs-tip-inner'></div></div>");
+         if(marker) {
+            markerTip.find('.vjs-tip-inner').text(setting.markerTip.text(marker));
+         }
          videoWrapper.find('.vjs-progress-holder').append(markerTip);
+         return markerTip;
       }
 
       // show or hide break overlays
-      function updateBreakOverlay() {
-         if(!setting.breakOverlay.display || currentMarkerIndex < 0){
+      function updateBreakOverlay(currentTime) {
+         if(currentMarkerIndex < 0){
             return;
          }
 
-         var currentTime = player.currentTime();
          var marker = markersList[currentMarkerIndex];
          var markerTime = setting.markerTip.time(marker);
 
          if (currentTime >= markerTime &&
             currentTime <= (markerTime + setting.breakOverlay.displayTime)) {
+
             if (overlayIndex != currentMarkerIndex){
                overlayIndex = currentMarkerIndex;
-               breakOverlay.find('.vjs-break-overlay-text').html(setting.breakOverlay.text(marker));
+               breakOverlay.find('.vjs-break-overlay-text').text(setting.breakOverlay.text(marker));
             }
 
             breakOverlay.css('visibility', "visible");
@@ -296,9 +303,9 @@
 
       // setup the whole thing
       function initialize() {
-         if (setting.markerTip.display) {
-            initializeMarkerTip();
-         }
+         // if (setting.markerTip.display) {
+         //    markerTip = initializeMarkerTip();
+         // }
 
          // remove existing markers if already initialized
          player.markers.removeAll();
