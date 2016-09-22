@@ -130,11 +130,17 @@
          for (var i = 0; i< markersList.length; i++) {
             var marker = markersList[i];
             var markerDiv = videoWrapper.find(".vjs-marker[data-marker-key='" + marker.key +"']");
+            var markerTip = videoWrapper.find(".vjs-tip[data-marker-key='" + marker.key +"']");
             var markerTime = setting.markerTip.time(marker);
 
             if (markerDiv.data('marker-time') != markerTime) {
-               markerDiv.css({"left": getPosition(marker) + '%'})
+                var left = getPosition(marker) + '%';
+                markerDiv.css({"left": left})
                   .attr("data-marker-time", markerTime);
+
+                if(markerTip) { // could be disabled
+                    markerTip.css("left", left);
+                }
             }
          }
          sortMarkersList();
@@ -175,10 +181,8 @@
 
       // attach hover event handler
       function initializeMarkerTipHandler(markerDiv, marker) {
-        if(!setting.markerTip.display) {
-            return;
-        }
         var markerTip = createMarkerTip(marker);
+
         markerTip.css({ // TODO: does not support multiline strings
             "left" : getPosition(marker) + '%',
             "margin-left" : -parseFloat(markerTip.css("width"))/2 - 5 + 'px',
