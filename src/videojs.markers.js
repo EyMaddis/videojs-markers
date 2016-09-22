@@ -119,7 +119,7 @@
          });
 
          if (setting.markerTip.display) {
-            registerMarkerTipHandler(markerDiv, marker);
+            initializeMarkerTipHandler(markerDiv, marker);
          }
 
          return markerDiv;
@@ -174,30 +174,37 @@
 
 
       // attach hover event handler
-      function registerMarkerTipHandler(markerDiv, marker) {
-         var markerTip = initializeMarkerTip(marker);
-         markerTip.css({ // TODO: does not support multiline strings
-                        "left" : getPosition(marker) + '%',
-                        "margin-left" : -parseFloat(markerTip.css("width"))/2 - 5 + 'px',
-                        "visibility"  : "visible"});
+      function initializeMarkerTipHandler(markerDiv, marker) {
+        if(!setting.markerTip.display) {
+            return;
+        }
+        var markerTip = createMarkerTip(marker);
+        markerTip.css({ // TODO: does not support multiline strings
+            "left" : getPosition(marker) + '%',
+            "margin-left" : -parseFloat(markerTip.css("width"))/2 - 5 + 'px',
+            "visibility"  : "visible"
+        });
 
-         markerDiv.on('mouseover', function(){
-            if(highlightedMarkerTip) {
-                highlightedMarkerTip.css('z-index', '100000');
-            }
-            highlightedMarkerTip = markerTip;
-            highlightedMarkerTip.css('z-index', '100001');
-
-            // TODO: toggle visibility?
-         }).on('mouseout',function(){
-            // markerTip.css("visibility", "hidden");
-         });
+        var mouseover = function(){
+            markerTip.addClass('vjs-marker-hovered');
+        };
+        var mouseout = function(){
+            markerTip.removeClass('vjs-marker-hovered');
+        };
+        markerTip
+            .on('mouseover', mouseover)
+            .on('mouseout', mouseout);
+        markerDiv
+            .on('mouseover', mouseover)
+            .on('mouseout', mouseout);
       }
 
-      function initializeMarkerTip(marker) { // TODO: fix vjs-tip-arrow which is moving when controlbar gets a hover
+      function createMarkerTip(marker) { // TODO: fix vjs-tip-arrow which is moving when controlbar gets a hover
          var markerTip = $("<div class='vjs-tip'><div class='vjs-tip-inner'></div></div>");
          if(marker) {
             markerTip.find('.vjs-tip-inner').text(setting.markerTip.text(marker));
+            markerTip.data('markerKey', marker.key);
+            markerTip.attr('data-marker-key', marker.key);
          }
          videoWrapper.find('.vjs-progress-holder').append(markerTip);
          return markerTip;
@@ -284,6 +291,7 @@
 
                if(currentTime >= setting.markerTip.time(markersList[i]) &&
                   currentTime < nextMarkerTime) {
+
                   newMarkerIndex = i;
                   break;
                }
@@ -292,6 +300,17 @@
 
          // set new marker index
          if (newMarkerIndex != currentMarkerIndex) {
+            var currentMarker = markersList[currentMarkerIndex],
+                newMarker = markersList[newMarkerIndex];
+
+            videoWrapper.find('.vjs-marker').removeClass('vjs-marker-active'); // reset all
+            videoWrapper.find('.vjs-tip').removeClass('vjs-marker-active'); // reset all
+            if(newMarker) {
+                var newMarkerDiv = videoWrapper.find(".vjs-marker[data-marker-key='" + newMarker.key +"']");
+                var newMarkerTip = videoWrapper.find(".vjs-tip[data-marker-key='" + newMarker.key +"']");
+                newMarkerDiv.addClass('vjs-marker-active');
+                newMarkerTip.addClass('vjs-marker-active');
+            }
             // trigger event
             if (newMarkerIndex != -1 && options.onMarkerReached) {
               options.onMarkerReached(markersList[newMarkerIndex]);
@@ -304,7 +323,7 @@
       // setup the whole thing
       function initialize() {
          // if (setting.markerTip.display) {
-         //    markerTip = initializeMarkerTip();
+         //    markerTip = createMarkerTip();
          // }
 
          // remove existing markers if already initialized
