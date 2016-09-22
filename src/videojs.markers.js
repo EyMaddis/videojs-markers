@@ -10,6 +10,7 @@
          'background-color': 'red'
       },
       markerTip: {
+         clickable: true,
          display: true,
          text: function(marker) {
             return "Break: "+ marker.text;
@@ -181,7 +182,8 @@
 
       // attach hover event handler
       function initializeMarkerTipHandler(markerDiv, marker) {
-        var markerTip = createMarkerTip(marker);
+        var markerTip = createMarkerTip(marker),
+            markerTipText = markerTip.find('.vjs-tip-inner');
 
         markerTip.css({ // TODO: does not support multiline strings
             "left" : getPosition(marker) + '%',
@@ -189,12 +191,21 @@
             "visibility"  : "visible"
         });
 
-        var mouseover = function(){
+
+
+        var mouseover = function(ev){
             markerTip.addClass('vjs-marker-hovered');
         };
         var mouseout = function(){
             markerTip.removeClass('vjs-marker-hovered');
         };
+        markerTipText
+            .on('click', function() {
+                if(setting.markerTip.clickable) {
+                    player.currentTime(marker.time);
+                }
+            });
+
         markerTip
             .on('mouseover', mouseover)
             .on('mouseout', mouseout);
