@@ -267,7 +267,7 @@
             return player.duration();
          }
          var currentTime = player.currentTime();
-         var newMarkerIndex;
+         var newMarkerIndex = -1;
 
          if (currentMarkerIndex != -1) {
             // check if staying at same marker
