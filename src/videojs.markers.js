@@ -4,6 +4,7 @@
 (function($, videojs, undefined) {
    //default setting
    var defaultSetting = {
+      activeHighlightTimeout: 1, // highlight for max 1 sec
       markerStyle: {
          'width':'7px',
          'border-radius': '30%',
@@ -283,18 +284,27 @@
          }
          var currentTime = player.currentTime();
          var newMarkerIndex = -1;
+         var nextMarkerTime;
 
          if (currentMarkerIndex != -1) {
             // check if staying at same marker
-            var nextMarkerTime = getNextMarkerTime(currentMarkerIndex);
-            if(currentTime >= setting.markerTip.time(markersList[currentMarkerIndex]) &&
-               currentTime < nextMarkerTime) {
-               return;
+            nextMarkerTime = getNextMarkerTime(currentMarkerIndex);
+
+            var currentMarker = markersList[currentMarkerIndex];
+            var currentMarkerTime = setting.markerTip.time(currentMarker);
+
+            // remove active highlight after some time
+            if(currentTime >= (currentMarkerTime + setting.activeHighlightTimeout)) {
+                videoWrapper
+                    .find(".vjs-marker[data-marker-key='" + currentMarker.key +"']")
+                    .removeClass('vjs-marker-active');
+                videoWrapper
+                    .find(".vjs-tip[data-marker-key='" + currentMarker.key +"']")
+                    .removeClass('vjs-marker-active');
             }
 
-            // check for ending (at the end current time equals player duration)
-            if (currentMarkerIndex === markersList.length -1 &&
-               currentTime === player.duration()) {
+            if(currentTime >=  currentMarkerTime &&
+               currentTime < nextMarkerTime) {
                return;
             }
          }
@@ -319,8 +329,7 @@
 
          // set new marker index
          if (newMarkerIndex != currentMarkerIndex) {
-            var currentMarker = markersList[currentMarkerIndex],
-                newMarker = markersList[newMarkerIndex];
+            var newMarker = markersList[newMarkerIndex];
 
             videoWrapper.find('.vjs-marker').removeClass('vjs-marker-active'); // reset all
             videoWrapper.find('.vjs-tip').removeClass('vjs-marker-active'); // reset all
