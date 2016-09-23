@@ -217,9 +217,13 @@
       function createMarkerTip(marker) { // TODO: fix vjs-tip-arrow which is moving when controlbar gets a hover
          var markerTip = $("<div class='vjs-tip'><div class='vjs-tip-inner'></div></div>");
          if(marker) {
-            markerTip.find('.vjs-tip-inner').text(setting.markerTip.text(marker));
+            var textDiv = markerTip.find('.vjs-tip-inner');
+            textDiv.text(setting.markerTip.text(marker));
             markerTip.data('markerKey', marker.key);
             markerTip.attr('data-marker-key', marker.key);
+            if(marker.class) {
+                textDiv.addClass(marker.class);
+            }
          }
          videoWrapper.find('.vjs-progress-holder').append(markerTip);
          return markerTip;
