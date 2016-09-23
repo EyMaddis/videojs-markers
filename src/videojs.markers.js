@@ -74,7 +74,7 @@
       function addMarkers(newMarkers) {
          // create the markers
          $.each(newMarkers, function(index, marker) {
-            marker.key = generateUUID();
+            marker.key = marker.key || generateUUID(); // allows external applications to track markers
 
             videoWrapper.find('.vjs-progress-holder').append(
                createMarkerDiv(marker));
