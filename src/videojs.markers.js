@@ -166,6 +166,7 @@
 
                // delete from dom
                videoWrapper.find(".vjs-marker[data-marker-key='" + marker.key +"']").remove();
+               videoWrapper.find(".vjs-tip[data-marker-key='" + marker.key +"']").remove();
             }
          }
 
