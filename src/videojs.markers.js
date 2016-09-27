@@ -233,7 +233,7 @@
 
       // show or hide break overlays
       function updateBreakOverlay(currentTime) {
-         if(currentMarkerIndex < 0){
+         if(currentMarkerIndex < 0 || !breakOverlay){
             return;
          }
 
@@ -426,8 +426,9 @@
          destroy: function(){
             // unregister the plugins and clean up even handlers
             player.markers.removeAll();
-            breakOverlay.remove();
-            markerTip.remove();
+            if(breakOverlay) {
+                breakOverlay.remove();
+            }
             player.off("timeupdate", updateBreakOverlay);
             delete player.markers;
          },
